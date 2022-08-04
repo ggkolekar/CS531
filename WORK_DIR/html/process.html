@@ -1,0 +1,28 @@
+<HTML>
+
+    Registration Form
+    
+    <table align=center datasrc="#xmlRegData" border=2>
+    <tr>
+    <td> Name:</td>
+    <td><span datafld="name"></span></td>
+    </tr>
+    <tr>
+    <td>E-mail:</td>
+    <td><span datafld="email"></td>
+    </tr>
+    </table>
+    
+    
+    Is this information correct ?
+    <form method=GET action=/cgi-bin/confirm.py>
+    
+    <input type=radio name='confirm' value='yes'> YES   
+    <input type=radio name='confirm' value='no' checked> NO 
+    
+    <input type=submit value=Submit>     
+    <input type=reset value=Reset>
+    
+    
+    </form>
+    </HTML>

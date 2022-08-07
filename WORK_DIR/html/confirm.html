@@ -1,28 +1,110 @@
-<HTML>
+#!/usr/bin/python
 
-    Registration Form
+# Import modules for CGI handling
+import cgi
+import cgitb
+import pymysql
+
+#################### SEND ALERT EMAIL AT FINISH WITH GMAIL #####################
+# To send email from Python from your google account, MUST
+# 1) Enable less secure app
+# https://myaccount.google.com/lesssecureapps
+# 2) Disable Unlock Capcha
+# https://accounts.google.com/b/0/DisplayUnlockCaptcha
+
+import smtplib
+import ssl
+import sys
+
+
+def SendEmail(name, email):
+    # store gmail password in my google drive (not the most secure way)
+    # but it is much safer than storing it directly in this notebook,
+    # and upload it to github for everyone to see
+    # with open('/content/gdrive/My Drive/Colab Notebooks/pw.txt') as file:
+    # data = file.readlines()
+
+    gmail_user = 'gayatri.kolekar@gmail.com'
+    gmail_password = 'xzykvrthkkpqxqof'
+
+    sent_from = gmail_user
+    to = [email]
+    msg = 'How are you,'
+    subject = 'How are you?'
+    body = '%s %s\nThank you,\nGayatri' % (msg,name)
+
+    email_text = '''\n
+         From: %s
+         To: %s
+         Subject: %s
+         
+         %s ''' % (sent_from, ", ".join(to), subject, body)
+
+
+    # For Basic email
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.ehlo()
+    server.starttls(context=context)
+    server.ehlo()
+    server.login(gmail_user, gmail_password)
+    server.sendmail(sent_from, to, email_text)
+    server.quit()
+
+    #print(f'Email: \n{email_text}')
+
+
+
+cgitb.enable()
+
+# Create instance of FieldStorage
+form = cgi.FieldStorage()
+
+# Get data from fields
+name = form.getvalue('name')
+email  = form.getvalue('email')
+confirm = form.getvalue('confirm')
+print ("Content-type:text/html\r\n\r\n")    
+if(confirm == 'yes'):
+
+    # Open database connection
+    db = pymysql.connect(host="localhost",user="root",password="root",db="cs531" )
+    # prepare a cursor object using cursor() method
+    cursor = db.cursor()
+    #first column value will be ignored by database
+    #its auto increment value but we need to provide it
+    #to avoid column count doesn't match error
+    sql="INSERT INTO user_tbl(user_name, user_email, submission_date)VALUES('"+name+"','"+email+"',now())"
     
-    <table align=center datasrc="#xmlRegData" border=2>
-    <tr>
-    <td> Name:</td>
-    <td><span datafld="name"></span></td>
-    </tr>
-    <tr>
-    <td>E-mail:</td>
-    <td><span datafld="email"></td>
-    </tr>
-    </table>
+    # Execute the SQL command
+    cursor.execute(sql)
+    # Commit your changes in the database 
+    db.commit()
+    db.close()
+
+    SendEmail(name,email)
+
+    print ("<TABLE ALIGN=ABSLEFT BORDER=1 CELLSPACING=1 CELLPADDING=1>")
+    print ("<TD>")
+    print ("<pre>")
+    print ("Registration successful")
+    print ("Thanks!")
+    print ("</TD>")
+    print ("</TR>")
+    print("</TABLE>")
     
-    
-    Is this information correct ?
-    <form method=GET action=/cgi-bin/confirm.py>
-    
-    <input type=radio name='confirm' value='yes'> YES   
-    <input type=radio name='confirm' value='no' checked> NO 
-    
-    <input type=submit value=Submit>     
-    <input type=reset value=Reset>
-    
-    
-    </form>
-    </HTML>
+else:
+    print ("<TABLE ALIGN=ABSLEFT BORDER=1 CELLSPACING=1 CELLPADDING=1>")
+    print ("<TD>")
+    print ("<pre>")
+    print ("<title>So, the information is correct</title>")
+
+    print ("<a href='/cgi-bin/regist.py'>Please Registration Again</a>")
+
+    print ("<a href='regist.html'>Back To Top</a>")
+
+    print ("</pre>")
+    print ("</TD>")
+    print ("</TR>")
+    print("</TABLE>")
